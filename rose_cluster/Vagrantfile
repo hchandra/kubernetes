@@ -1,0 +1,44 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+Vagrant.configure(2) do |config|
+
+  config.vm.provision "shell", path: "bootstrap.sh"
+
+  # Kubernetes Master Server
+  config.vm.define "rmaster" do |rmaster|
+    rmaster.vm.box = "centos/7"
+    rmaster.vm.hostname = "rmaster.example.com"
+    rmaster.vm.network "public_network", bridge: "br0", ip: "192.168.1.200"
+    rmaster.vm.provider "virtualbox" do |v|
+      v.name = "rmaster"
+      v.memory = 2048
+      v.cpus = 2
+      # Prevent VirtualBox from interfering with host audio stack
+      v.customize ["modifyvm", :id, "--audio", "none"]
+    end
+    rmaster.vm.provision "shell", path: "bootstrap_rmaster_flannel.sh"
+  end
+
+  NodeCount = 2
+
+  # Kubernetes Worker Nodes
+  (1..NodeCount).each do |i|
+    config.vm.define "rworker#{i}" do |workernode|
+      workernode.vm.box = "centos/7"
+      workernode.vm.hostname = "rworker#{i}.example.com"
+      workernode.vm.network "public_network", bridge: "br0", ip: "192.168.1.20#{i}"
+      workernode.vm.provider "virtualbox" do |v|
+        v.name = "rworker#{i}"
+        v.memory = 2024
+        v.cpus = 1
+        # Prevent VirtualBox from interfering with host audio stack
+        v.customize ["modifyvm", :id, "--audio", "none"]
+      end
+      workernode.vm.provision "shell", path: "bootstrap_rworker.sh"
+    end
+  end
+
+end

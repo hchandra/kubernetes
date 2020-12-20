@@ -1,0 +1,21 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+ENV['VAGRANT_NO_PARALLEL'] = 'yes'
+
+Vagrant.configure(2) do |config|
+
+  config.vm.define "haproxy" do |haproxy|
+    haproxy.vm.box = "centos/7"
+    haproxy.vm.hostname = "haproxy.example.com"
+    haproxy.vm.network "public_network", bridge: "br0", ip: "192.168.1.199"
+    haproxy.vm.provider "virtualbox" do |v|
+      v.name = "haproxy"
+      v.memory = 2048
+      v.cpus = 1
+      # Prevent VirtualBox from interfering with host audio stack
+      v.customize ["modifyvm", :id, "--audio", "none"]
+    end
+    haproxy.vm.provision "shell", path: "install_haproxy.sh"
+  end
+end

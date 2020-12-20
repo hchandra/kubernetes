@@ -1,0 +1,2 @@
+kubectl create deployment echo --image=gcr.io/google_containers/echoserver:1.8
+kubectl expose deployment echo --type=NodePort --port=8080
